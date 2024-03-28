@@ -83,11 +83,21 @@ USER_FACE_WIDTH = 140  # [mm]
 ## Camera Parameters (not currently used in calculations)
 # NOSE_TO_CAMERA_DISTANCE: The distance from the tip of the nose to the camera lens in millimeters.
 # Intended for future use where accurate physical distance measurements may be necessary.
-NOSE_TO_CAMERA_DISTANCE = 600  # [mm]
+NOSE_TO_CAMERA_DISTANCE = 2000  # [mm]
+
+X = None #700
+Y = None #50
+WIDTH = None #500
+HEIGHT = None #300
+
+
+VID_NAME = '26d70c16-5ad8-4e4d-847c-be4cfc5b2ea1_0002.avi'
+VID_NAME = 'b944174e-b886-4f2f-9e44-a4e44b588ffb_0002.avi'
+VID_NAME = 0
 
 ## Configuration Parameters
 # PRINT_DATA: Enable or disable the printing of data to the console for debugging.
-PRINT_DATA = True
+PRINT_DATA = False
 
 # DEFAULT_WEBCAM: Default camera source index. '0' usually refers to the built-in webcam.
 DEFAULT_WEBCAM = 0
@@ -150,8 +160,8 @@ RIGHT_MOUTH_CORNER_INDEX = 291
 
 ## MediaPipe Model Confidence Parameters
 # These thresholds determine how confidently the model must detect or track to consider the results valid.
-MIN_DETECTION_CONFIDENCE = 0.8
-MIN_TRACKING_CONFIDENCE = 0.8
+MIN_DETECTION_CONFIDENCE = 0.7
+MIN_TRACKING_CONFIDENCE = 0.7
 
 ## Angle Normalization Parameters
 # MOVING_AVERAGE_WINDOW: The number of frames over which to calculate the moving average for smoothing angles.
@@ -164,7 +174,7 @@ initial_pitch, initial_yaw, initial_roll = None, None, None
 calibrated = False
 
 # User-configurable parameters
-PRINT_DATA = True  # Enable/disable data printing
+#PRINT_DATA = True  # Enable/disable data printing
 DEFAULT_WEBCAM = 0  # Default webcam number
 SHOW_ALL_FEATURES = True  # Show all facial landmarks if True
 LOG_DATA = True  # Enable logging to CSV
@@ -378,7 +388,11 @@ mp_face_mesh = mp.solutions.face_mesh.FaceMesh(
     min_tracking_confidence=MIN_TRACKING_CONFIDENCE,
 )
 cam_source = int(args.camSource)
-cap = cv.VideoCapture(cam_source)
+#cap = cv.VideoCapture(cam_source)
+if isinstance(VID_NAME, int):
+    cap = cv.VideoCapture(0)
+elif isinstance(VID_NAME, str):
+    cap = cv.VideoCapture(VID_NAME)
 
 # Initializing socket for data transmission
 iris_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -417,6 +431,10 @@ try:
 
     while True:
         ret, frame = cap.read()
+        if X is not None and Y is not None and WIDTH is not None and HEIGHT is not None:
+            frame = frame[Y:Y+HEIGHT, X:X+WIDTH]
+        else:
+            pass
         if not ret:
             break
 
@@ -571,28 +589,28 @@ try:
                 print(f"Right Eye Center X: {r_cx} Y: {r_cy}")
                 print(f"Left Iris Relative Pos Dx: {l_dx} Dy: {l_dy}")
                 print(f"Right Iris Relative Pos Dx: {r_dx} Dy: {r_dy}\n")
-                # Check if head pose estimation is enabled
-                if ENABLE_HEAD_POSE:
-                    pitch, yaw, roll = estimate_head_pose(mesh_points, (img_h, img_w))
-                    angle_buffer.add([pitch, yaw, roll])
-                    pitch, yaw, roll = angle_buffer.get_average()
+            # Check if head pose estimation is enabled
+            if ENABLE_HEAD_POSE:
+                pitch, yaw, roll = estimate_head_pose(mesh_points, (img_h, img_w))
+                angle_buffer.add([pitch, yaw, roll])
+                pitch, yaw, roll = angle_buffer.get_average()
 
-                    # Set initial angles on first successful estimation or recalibrate
-                    if initial_pitch is None or (key == ord('c') and calibrated):
-                        initial_pitch, initial_yaw, initial_roll = pitch, yaw, roll
-                        calibrated = True
-                        if PRINT_DATA:
-                            print("Head pose recalibrated.")
-
-                    # Adjust angles based on initial calibration
-                    if calibrated:
-                        pitch -= initial_pitch
-                        yaw -= initial_yaw
-                        roll -= initial_roll
-                    
-                    
+                # Set initial angles on first successful estimation or recalibrate
+                if initial_pitch is None or (key == ord('c') and calibrated):
+                    initial_pitch, initial_yaw, initial_roll = pitch, yaw, roll
+                    calibrated = True
                     if PRINT_DATA:
-                        print(f"Head Pose Angles: Pitch={pitch}, Yaw={yaw}, Roll={roll}")
+                        print("Head pose recalibrated.")
+
+                # Adjust angles based on initial calibration
+                if calibrated:
+                    pitch -= initial_pitch
+                    yaw -= initial_yaw
+                    roll -= initial_roll
+                
+                
+                if PRINT_DATA:
+                    print(f"Head Pose Angles: Pitch={pitch}, Yaw={yaw}, Roll={roll}")
             # Logging data
             if LOG_DATA:
                 timestamp = int(time.time() * 1000)  # Current timestamp in milliseconds
