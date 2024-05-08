@@ -21,8 +21,10 @@ from utils import detect_face, find_blinkThreshold, plot_blink_threshold
 #-----------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-RAW_PATH = '/Users/kendranoneman/OneDrive/ecog_data'
-OUT_PATH = '/Users/kendranoneman/OneDrive/eyeTracking_ECoG_results'
+#RAW_PATH = '/Users/kendranoneman/OneDrive/ecog_data'
+#OUT_PATH = '/Users/kendranoneman/OneDrive/eyeTracking_ECoG_results'
+
+RAW_PATH = '/ix1/pmayo/OneDrive/EyeMovement/Deidentified_DATA'
 
 PATIENTS = sorted([directory for directory in os.listdir(RAW_PATH) if len(directory) == 2 and directory != '.DS_STORE'])
 
