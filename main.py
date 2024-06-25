@@ -11,20 +11,21 @@ import math
 import socket
 import argparse
 import time
+import random
 import csv
 from datetime import datetime
 import glob
 from AngleBuffer import AngleBuffer
 from detector import gaze_detection
-from utils import detect_face, find_blinkThreshold, plot_blink_threshold
+from utils import detect_face, detect_blinks, find_blinkThreshold, plot_blink_threshold
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-#RAW_PATH = '/Users/kendranoneman/OneDrive/ecog_data'
+RAW_PATH = '/Users/kendranoneman/OneDrive/ecog_data'
 #OUT_PATH = '/Users/kendranoneman/OneDrive/eyeTracking_ECoG_results'
 
-RAW_PATH = '/ix1/pmayo/OneDrive/EyeMovement/Deidentified_DATA'
+#RAW_PATH = '/ix1/pmayo/OneDrive/EyeMovement/Deidentified_DATA'
 
 PATIENTS = sorted([directory for directory in os.listdir(RAW_PATH) if len(directory) == 2 and directory != '.DS_STORE'])
 
@@ -40,8 +41,12 @@ for patient in PATIENTS:
 
                 #shift = detect_face(VID_NAME)
                 SHIFT = [525, 105, 300, 300]
+    
+                blinks = find_blinkThreshold(VID_NAME, SHIFT=SHIFT, duration=20, showVideo=1)
+                #detect_blinks(VID_NAME, SHIFT=SHIFT, BLINK_THRESHOLDS=[0.51,0.515,0.52,0.525], duration=20, showVideo=1)
+                manual_blinks,start_frame = manual_detectBlinks(VID_NAME, SHIFT=SHIFT, duration=20)
+                print(manual_blinks)
 
-                thresholds, average_blinks_array = find_blinkThreshold(VID_NAME, SHIFT=SHIFT, duration=10, showVideo=0)
                 plot_blink_threshold(thresholds, average_blinks_array)
                 #BLINK_THRESHOLD = find_blinkThreshold(VID_NAME, SHIFT=SHIFT)
                 
